@@ -39,9 +39,32 @@
         schemaCallback([tableSchema]);
     };
 
+    function getSearchParameters() {
+        var prmstr = window.location.search.substr(1);
+        return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+    }
+    
+    function transformToAssocArray( prmstr ) {
+        var params = {};
+        var prmarr = prmstr.split("&");
+        for ( var i = 0; i < prmarr.length; i++) {
+            var tmparr = prmarr[i].split("=");
+            params[tmparr[0]] = tmparr[1];
+        }
+        return params;
+    }
+    
+    var params = getSearchParameters();
+
+
     // Download the data
     myConnector.getData = function(table, doneCallback) {
-        $.getJSON("http://localhost:8889/https://api.afl.championdata.io/api/matches/233202304/statistics/squads", function(resp) {   
+        var wdcParameters = JSON.parse(tableau.connectionData),
+        matchId = wdcParameters.matchId;
+        
+        console.log("matchId: " + params.matchId);
+
+        $.getJSON("http://localhost:8889/https://api.afl.championdata.io/api/matches/" + matchId + "/statistics/squads", function(resp) {   
 
         var squads = resp.squads,
                 tableData = [];
@@ -76,6 +99,11 @@
           })
 
         $("#submitButton").click(function() {
+            var wdcParameters = {
+                matchId: $('#matchId').val().trim(),
+            };
+
+            tableau.connectionData = JSON.stringify(wdcParameters);
             tableau.connectionName = "Champion Data - Team Statistics"; // This will be the data source name in Tableau
             tableau.submit(); // This sends the connector object to Tableau
         });
