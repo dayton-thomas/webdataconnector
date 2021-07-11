@@ -31,31 +31,13 @@
         }];
 
         var tableSchema = {
-            id: "teamStatistics",
-            alias: "Team statistics.",
+            id: "matchStatisticsPlayers",
+            alias: "Match statistics (players).",
             columns: cols
         };
 
         schemaCallback([tableSchema]);
     };
-
-    function getSearchParameters() {
-        var prmstr = window.location.search.substr(1);
-        return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
-    }
-    
-    function transformToAssocArray( prmstr ) {
-        var params = {};
-        var prmarr = prmstr.split("&");
-        for ( var i = 0; i < prmarr.length; i++) {
-            var tmparr = prmarr[i].split("=");
-            params[tmparr[0]] = tmparr[1];
-        }
-        return params;
-    }
-    
-    var params = getSearchParameters();
-
 
     // Download the data
     myConnector.getData = function(table, doneCallback) {
@@ -102,7 +84,7 @@
             };
 
             tableau.connectionData = JSON.stringify(wdcParameters);
-            tableau.connectionName = "Champion Data - Team Statistics"; // This will be the data source name in Tableau
+            tableau.connectionName = "Match Statistics - Players"; // This will be the data source name in Tableau
             tableau.submit(); // This sends the connector object to Tableau
         });
     });
