@@ -42,9 +42,28 @@
     // Download the data
     myConnector.getData = function(table, doneCallback) {
         var wdcParameters = JSON.parse(tableau.connectionData),
-        matchId = wdcParameters.matchId;
+        matchId = wdcParameters.matchId,
+        zone = wdcParameters.zone,
+        period = wdcParameters.period,
+        apiURL = "http://localhost:8889/https://api.afl.championdata.io/api/matches/" + matchId + "/statistics/squads";
 
-        $.getJSON("http://localhost:8889/https://api.afl.championdata.io/api/matches/" + matchId + "/statistics/squads", function(resp) {   
+        if (zone || period) {
+            apiURL = apiURL + "?";
+
+            if (zone) {
+                apiURL = apiURL + "zone=" + zone;
+            }
+
+            if (zone && period) {
+                apiURL = apiURL + "&";
+            }
+
+            if (period) {
+                apiURL = apiURL + "period=" + period;
+            }
+        }
+
+        $.getJSON(apiURL, function(resp) {   
 
         var squads = resp.squads,
                 tableData = [];
@@ -81,6 +100,8 @@
         $("#submitButton").click(function() {
             var wdcParameters = {
                 matchId: $('#matchId').val().trim(),
+                zone: $('#zone').val().trim(),
+                period: $('#period').val().trim(),
             };
 
             tableau.connectionData = JSON.stringify(wdcParameters);

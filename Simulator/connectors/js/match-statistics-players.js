@@ -5,26 +5,32 @@
     // Define the schema
     myConnector.getSchema = function(schemaCallback) {
         var cols = [{
-            id: "name",
+            id: "teamCode",
             dataType: tableau.dataTypeEnum.string
         },{
-            id: "code",
+            id: "teamName",
             dataType: tableau.dataTypeEnum.string
         },{
-            id: "statId",
+            id: "jumperNumber",
             dataType: tableau.dataTypeEnum.float
+        },{
+            id: "displayName",
+            dataType: tableau.dataTypeEnum.string
+        },{
+            id: "fullname",
+            dataType: tableau.dataTypeEnum.string
         },{
             id: "statName",
             dataType: tableau.dataTypeEnum.string
         },{
-            id: "statNamePlural",
-            dataType: tableau.dataTypeEnum.string
+            id: "statPlural",
+            dataType: tableau.dataTypeEnum.float
         },{
             id: "statCode",
             dataType: tableau.dataTypeEnum.string
         },{
             id: "statValue",
-            dataType: tableau.dataTypeEnum.float
+            dataType: tableau.dataTypeEnum.string
         },{
             id: "statValueDisplay",
             dataType: tableau.dataTypeEnum.string
@@ -42,26 +48,52 @@
     // Download the data
     myConnector.getData = function(table, doneCallback) {
         var wdcParameters = JSON.parse(tableau.connectionData),
-        matchId = wdcParameters.matchId;
+        matchId = wdcParameters.matchId,
+        zone = wdcParameters.zone,
+        period = wdcParameters.period,
+        apiURL = "http://localhost:8889/https://api.afl.championdata.io/api/matches/" + matchId + "/statistics/players";
 
-        $.getJSON("http://localhost:8889/https://api.afl.championdata.io/api/matches/" + matchId + "/statistics/squads", function(resp) {   
+        if (zone || period) {
+            apiURL = apiURL + "?";
+
+            if (zone) {
+                apiURL = apiURL + "zone=" + zone;
+            }
+
+            if (zone && period) {
+                apiURL = apiURL + "&";
+            }
+
+            if (period) {
+                apiURL = apiURL + "period=" + period;
+            }
+        }
+
+        $.getJSON(apiURL, function(resp) {   
 
         var squads = resp.squads,
                 tableData = [];
 
+                
             // Iterate over the JSON object
             for (var i = 0, len = squads.length; i < len; i++) {
-                for (var x = 0, leng = squads[i].statistics.length; x < leng; x++) {
-                    tableData.push({
-                        "name": squads[i].name,
-                        "code": squads[i].code,
-                        "statId": squads[i].statistics[x].id,
-                        "statName": squads[i].statistics[x].name,
-                        "statNamePlural": squads[i].statistics[x].namePlural,
-                        "statCode": squads[i].statistics[x].code,
-                        "statValue": squads[i].statistics[x].value,
-                        "statValueDisplay": squads[i].statistics[x].valueDisplay
-                    });
+                for (var x = 0, lenx = squads[i].players.length; x < lenx; x++) {
+                    for (var y = 0, leny = squads[i].players[x].statistics.length; y < leny; y++) {
+                        tableData.push({
+                            "teamCode": squads[i].code,
+                            "teamName": squads[i].name,
+
+                            "jumperNumber": squads[i].players[x].jumperNumber,
+                            "displayName": squads[i].players[x].displayName,
+                            "fullname": squads[i].players[x].fullname,
+
+                            "statName": squads[i].players[x].statistics[y].name,
+                            "statPlural": squads[i].players[x].statistics[y].namePlural,
+                            "statCode": squads[i].players[x].statistics[y].code,
+                            "statValue": squads[i].players[x].statistics[y].value,
+                            "statValueDisplay": squads[i].players[x].statistics[y].valueDisplay
+                        });
+                    }
                 }
             }
 
@@ -81,6 +113,8 @@
         $("#submitButton").click(function() {
             var wdcParameters = {
                 matchId: $('#matchId').val().trim(),
+                zone: $('#zone').val().trim(),
+                period: $('#period').val().trim(),
             };
 
             tableau.connectionData = JSON.stringify(wdcParameters);
